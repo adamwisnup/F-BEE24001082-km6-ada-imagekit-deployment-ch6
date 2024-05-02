@@ -1,0 +1,58 @@
+name: Vercel Preview Deployment
+
+# Environment Variables for the Organization and Project ID
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+# Trigger the workflow on pushes to the main branch
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  Deploy-Preview:
+    # Specify the runner
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Setup Node.js version 18.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Install Prisma
+      - name: Install Prisma
+        run: npm install @prisma/cli
+
+      # Run Prisma migrations
+      - name: Run Prisma Migrations
+        run: |
+          export DATABASE_URL=${{ secrets.DATABASE_URL }}
+          npx prisma migrate deploy
+
+      # Install the Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      # Pull Vercel Environment Information for production
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Build the project artifacts
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Deploy the project artifacts to Vercel in production
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
