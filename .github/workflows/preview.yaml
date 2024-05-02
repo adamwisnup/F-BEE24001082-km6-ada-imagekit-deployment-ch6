@@ -33,7 +33,7 @@ jobs:
 
       # Install Prisma
       - name: Install Prisma
-        run: npm install @prisma/cli
+        run: npm install prisma
 
       # Run Prisma migrations
       - name: Run Prisma Migrations
