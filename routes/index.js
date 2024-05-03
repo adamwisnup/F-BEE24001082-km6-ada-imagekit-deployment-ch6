@@ -6,6 +6,7 @@ const {
   createPicture,
   getPicture,
   getPictureId,
+  updatePictureOnly,
   updatePicture,
   deletePicture,
 } = require("../controllers/picture.controller");
@@ -14,6 +15,7 @@ const {
 router.post("/pictures", image.single("image"), createPicture);
 router.get("/pictures", getPicture);
 router.get("/pictures/:id", getPictureId);
+router.patch("/pictures-only/:id", image.single("image"), updatePictureOnly);
 router.put("/pictures/:id", updatePicture);
 router.delete("/pictures/:id", deletePicture);
 

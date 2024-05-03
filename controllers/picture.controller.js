@@ -35,7 +35,7 @@ const createPicture = async (req, res) => {
       data: {
         title,
         description,
-        image_url: fileUrl, // Simpan URL gambar yang sebenarnya
+        image_url: fileUrl,
       },
     });
 
@@ -67,7 +67,6 @@ const getPicture = async (req, res) => {
   }
 };
 
-//get image by id
 const getPictureId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -97,7 +96,6 @@ const getPictureId = async (req, res) => {
   }
 };
 
-//update title dan description
 const updatePicture = async (req, res) => {
   try {
     const { id } = req.params;
@@ -140,14 +138,68 @@ const updatePicture = async (req, res) => {
   }
 };
 
-//delete image_url saja
-const deletePicture = async (req, res) => {
+const updatePictureOnly = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const picture = await prisma.picture.findUnique({
+    if (!id) {
+      return res.status(400).json({
+        message: "Invalid user ID",
+      });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        status: "error",
+        message: "No file provided",
+      });
+    }
+
+    const fileBase64 = req.file.buffer.toString("base64");
+
+    const response = await ImageKit.upload({
+      fileName: Date.now() + path.extname(req.file.originalname),
+      file: fileBase64,
+      folder: "pictures",
+    });
+
+    const fileUrl = response.url;
+
+    const picture = await prisma.picture.update({
       where: {
         id: parseInt(id),
+      },
+      data: {
+        image_url: fileUrl,
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: picture,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+const deletePicture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pictureId = parseInt(id, 10);
+    if (isNaN(pictureId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid ID",
+      });
+    }
+
+    const picture = await prisma.picture.findUnique({
+      where: {
+        id: pictureId,
       },
     });
 
@@ -158,30 +210,24 @@ const deletePicture = async (req, res) => {
       });
     }
 
-    // Menghapus entri dari database
-    const deletedPicture = await prisma.picture.delete({
+    const updatedPicture = await prisma.picture.update({
       where: {
-        id: parseInt(id),
+        id: pictureId,
+      },
+      data: {
+        image_url: null,
       },
     });
 
-    // Menghapus gambar dari penyimpanan dengan metode yang benar
-    const fileUrl = picture.image_url; // Pastikan nama field sesuai dengan skema Prisma
-    const fileName = fileUrl.split("/").pop(); // Dapatkan nama file
-    const fileId = fileName.split(".")[0];
-
-    // Pastikan menggunakan metode yang benar untuk menghapus file
-    await ImageKit.deleteFile(fileId); // `deleteFile`, bukan `delete`
-
     res.status(200).json({
       status: "success",
-      data: deletedPicture,
+      data: updatedPicture,
     });
   } catch (error) {
-    console.error(error); // Log the error for debugging purposes
+    console.error("Error in deletePicture:", error);
     res.status(500).json({
       status: "error",
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };
@@ -190,6 +236,7 @@ module.exports = {
   createPicture,
   getPicture,
   getPictureId,
+  updatePictureOnly,
   updatePicture,
   deletePicture,
 };
