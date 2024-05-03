@@ -2,28 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "./bin/www",
+      "src": "bin/www",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/v1/(.*)",
-      "dest": "/(.*)"
+      "src": "^/api/v1/(.*)$",
+      "dest": "/"
     },
     {
       "src": "/(.*)",
-      "dest": "/(.*)"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/v1/(.*)",
-      "destination": "/(.*)"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/(.*)"
+      "dest": "/"
     }
   ]
 }
