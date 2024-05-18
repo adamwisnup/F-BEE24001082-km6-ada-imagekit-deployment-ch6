@@ -56,5 +56,3 @@ jobs:
       # Deploy the project artifacts to Vercel in production
       - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-        #build prisma
