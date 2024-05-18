@@ -11,6 +11,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "vercel-build": "prisma generate && prisma migrate deploy"
+  ]
 }
